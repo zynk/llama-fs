@@ -1,68 +1,78 @@
 import os
 import json
-import argparse
+import shutil
+import asyncio
 import pathlib
-from groq import Groq
-from llama_index.core import SimpleDirectoryReader
+import requests
 import colorama
-import pathlib
 from pathlib import Path
 from termcolor import colored
 from asciitree import LeftAligned
 from asciitree.drawing import BoxStyle, BOX_LIGHT
-from src.loader import get_dir_summaries
-from src.tree_generator import create_file_tree
-import asyncio
 from dotenv import load_dotenv
 import click
+
+from src.loader import get_dir_summaries
+from src.tree_generator import create_file_tree
+
 load_dotenv()
-colorama.init()  # Initializes colorama to make it work on Windows as well
+colorama.init()  # Enables ANSI coloring on Windows terminals
 
 
 @click.command()
 @click.argument("src_path", type=click.Path(exists=True))
 @click.argument("dst_path", type=click.Path())
 @click.option("--auto-yes", is_flag=True, help="Automatically say yes to all prompts")
-def main(src_path, dst_path, auto_yes=False):
+@click.option("--move", is_flag=True, help="Move files instead of copying")
+def main(src_path, dst_path, auto_yes=False, move=False):
+    src_path = Path(src_path)
+    dst_path = Path(dst_path)
+    dst_path.mkdir(exist_ok=True)
 
-    summaries = asyncio.run(get_dir_summaries(src_path))
+    # 1. Get summaries
+    summaries = asyncio.run(get_dir_summaries(str(src_path)))
 
-    # Get file tree
+    # 2. Generate structured file tree
     files = create_file_tree(summaries)
 
-    BASE_DIR = pathlib.Path(dst_path)
-    BASE_DIR.mkdir(exist_ok=True)
-
-    # Recursively create dictionary from file paths
+    # 3. Build and preview ASCII folder tree
     tree = {}
     for file in files:
         parts = Path(file["dst_path"]).parts
         current = tree
         for part in parts:
             current = current.setdefault(part, {})
-
-    tree = {dst_path: tree}
-
+    tree = {str(dst_path): tree}
     tr = LeftAligned(draw=BoxStyle(gfx=BOX_LIGHT, horiz_len=1))
     print(tr(tree))
 
-    # Prepend base path to dst_path
+    # 4. Normalize src and dst paths
     for file in files:
-        file["dst_path"] = os.path.join(src_path, file["dst_path"])
-        file["summary"] = summaries[files.index(file)]["summary"]
+        # Use model's relative dst_path to create full destination path
+        file["dst_path"] = dst_path / Path(file["dst_path"])
+        file["src_path"] = src_path / Path(file["src_path"]).name
 
-    if not auto_yes and not click.confirm(
-        "Proceed with directory structure?", default=True
-    ):
+    # 5. Confirm with user
+    if not auto_yes and not click.confirm("Proceed with directory structure?", default=True):
         click.echo("Operation cancelled.")
         return
 
+    # 6. Move or copy files
     for file in files:
-        file["path"] = pathlib.Path(file["dst_path"])
-        # Create file in specified base directory
-        (BASE_DIR / file["path"]).parent.mkdir(parents=True, exist_ok=True)
-        with open(BASE_DIR / file["path"], "w") as f:
-            f.write("")
+        src_file = file["src_path"]
+        dst_file = file["dst_path"]
+
+        dst_file.parent.mkdir(parents=True, exist_ok=True)
+
+        try:
+            if move:
+                shutil.move(str(src_file), str(dst_file))
+                print(f"🚚 Moved: {src_file} → {dst_file}")
+            else:
+                shutil.copy2(str(src_file), str(dst_file))
+                print(f"📁 Copied: {src_file} → {dst_file}")
+        except Exception as e:
+            print(f"❌ Failed to transfer {src_file}: {e}")
 
 
 if __name__ == "__main__":

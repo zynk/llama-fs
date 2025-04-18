@@ -2,8 +2,9 @@ import asyncio
 import json
 import os
 import time
+import ollama
 
-from groq import Groq
+# from groq import Groq
 from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
 
@@ -79,21 +80,28 @@ class Handler(FileSystemEventHandler):
 
 
 def create_file_tree(summaries, fs_events):
-
     FILE_PROMPT = """
-You will be provided with list of source files and a summary of their contents. For each file, propose a new path and filename, using a directory structure that optimally organizes the files using known conventions and best practices.
+For each file, generate a new `dst_path` that includes:
+- A relative folder path that categorizes the file based on its content
+- A new filename based on its content, the filename should be a little more specific and detailed to the subject of the file
 
-If the file is already named well or matches a known convention, set the destination path to the same as the source path.
+✅ Example:
+If the file is "cool.jpg" and it's a funny reaction image, then:
+  "dst_path": "memes/funny_meme.jpg"
 
-Your response must be a JSON object with the following schema:
+⚠️ Never return just a folder name as the dst_path.
+⚠️ Always include the full path + filename + extension in dst_path.
+
+Your response format must be:
+
 ```json
 {
-    "files": [
-        {
-            "src_path": "original file path",
-            "dst_path": "new file path under proposed directory structure with proposed file name"
-        }
-    ]
+  "files": [
+    {
+      "src_path": "original_filename.ext",
+      "dst_path": "folder_name/new_filename.ext"
+    }
+  ]
 }
 ```
 """.strip()
@@ -108,16 +116,16 @@ Here are a few examples of good file naming conventions to emulate, based on the
 Include the above items in your response exactly as is, along all other proposed changes.
 """.strip()
 
-    client = Groq()
-    cmpl = client.chat.completions.create(
-        messages=[
-            {"content": FILE_PROMPT, "role": "system"},
-            {"content": json.dumps(summaries), "role": "user"},
-            {"content": WATCH_PROMPT, "role": "system"},
-            {"content": json.dumps(fs_events), "role": "user"},
-        ],
-        model="llama-3.1-70b-versatile",
-        response_format={"type": "json_object"},
-        temperature=0,
-    )
-    return json.loads(cmpl.choices[0].message.content)["files"]
+    client = ollama.Client()
+    try:
+        response = client.chat(
+            model="codellama:instruct",
+            messages=[
+                {"role": "system", "content": FILE_PROMPT},
+                {"role": "user", "content": json.dumps(summaries)},
+            ]
+        )
+        return json.loads(response["message"]["content"])["files"]
+    except Exception as e:
+        print(f"❌ Failed to generate file tree with Ollama: {e}")
+        return []

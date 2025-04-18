@@ -2,9 +2,19 @@
 
 <img src="electron-react-app/assets/llama_fs.png" width="30%" />
 
-## Inspiration
+## Ollama Updation
 
-[Watch the explainer video](https://x.com/AlexReibman/status/1789895425828204553)
+Okay, so I really bastardized this project to use Ollama instead of Groq, delete all Groq code, use this at your own risk. I only cared about the folder organization, renaming files wasn't really important to me but I added that in anyway.
+
+Feel free to mess with the actual prompt located in src\tree_generator.py and watch_utils, snippet is called "File_Prompt", it's highly effective to just change what you're asking it rather than the code itself.
+
+Utilizes Ollama, completely local, codellama:instruct is the model, mainly because it has no ethical dilemmas with images you feed it. No need for icognito toggle, overkill.
+
+You will need to install the ollama dependencies below. The requirements has been updated per my changes.
+
+I got rid of AgentOps, it's fast enough, we get it. I trashed all the other bs, just install requirements, install ollama dependencies, and run it with the command at the end. Done.
+
+## Inspiration
 
 Open your `~/Downloads` directory. Or your Desktop. It's probably a mess...
 
@@ -22,13 +32,13 @@ In watch mode, LlamaFS starts a daemon that watches your directory. It intercept
 
 Uh... Sending all my personal files to an API provider?! No thank you!
 
-It also has a toggle for "incognito mode," allowing you route every request through Ollama instead of Groq. Since they use the same Llama 3 model, the perform identically.
+~~It also has a toggle for "incognito mode," allowing you route every request through Ollama instead of Groq. Since they use the same Llama 3 model, the perform identically.~~
 
 ## How we built it
 
 We built LlamaFS on a Python backend, leveraging the Llama3 model through Groq for file content summarization and tree structuring. For local processing, we integrated Ollama running the same model to ensure privacy in incognito mode. The frontend is crafted with Electron, providing a sleek, user-friendly interface that allows users to interact with the suggested file structures before finalizing changes.
 
-- **It's extremely fast!** (by LLM standards)! Most file operations are processed in <500ms in watch mode (benchmarked by [AgentOps](https://agentops.ai/?utm_source=llama-fs)). This is because of our smart caching that selectively rewrites sections of the index based on the minimum necessary filesystem diff. And of course, Groq's super fast inference API. 😉
+- **It's extremely fast!** (by LLM standards)! Most file operations are processed in <500ms in watch mode ~~(benchmarked by [AgentOps](https://agentops.ai/?utm_source=llama-fs))~~. This is because of our smart caching that selectively rewrites sections of the index based on the minimum necessary filesystem diff. ~~And of course, Groq's super fast inference API. 😉~~ (This was written by AI, can you tell?)
 
 - **It's immediately useful** - It's very low friction to use and addresses a problem almost everyone has. We started using it ourselves on this project (very Meta).
 
@@ -62,19 +72,21 @@ To install the project, follow these steps:
    ```bash
    pip install -r requirements.txt
    ```
+I already included other shit you will most likely need.
 
-4. Update your `.env`
+~~4. Update your `.env`
 Copy `.env.example` into a new file called `.env`. Then, provide the following API keys:
 * Groq: You can obtain one from [here](https://console.groq.com/keys).
-* AgentOps: You can obtain one from [here](https://app.agentops.ai/settings/projects).
+* AgentOps: You can obtain one from [here](https://app.agentops.ai/settings/projects).~~ (Ew.)
 
-Groq is used for fast cloud inference but can be replaced with Ollama in the code directly (TODO.)
+~~Groq is used for fast cloud inference but can be replaced with Ollama in the code directly (TODO.~~ Not.)
 
-AgentOps is used for logging and monitoring and will report the latency, cost per session, and give you a full session replay of each LlamaFS call.
+~~AgentOps is used for logging and monitoring and will report the latency, cost per session, and give you a full session replay of each LlamaFS call.~~ (Hell no.)
 
 5. (Optional) Install moondream if you want to use the incognito mode
     ```bash
     ollama pull moondream
+    ollama pull codellama:instruct
     ```
 
 ## Usage
@@ -89,4 +101,14 @@ This will run the server by default on port 8000. The API can be queried using a
    curl -X POST http://127.0.0.1:8000/batch \
     -H "Content-Type: application/json" \
     -d '{"path": "/Users/<username>/Downloads/", "instruction": "string", "incognito": false}'
+   ```
+
+The above bash is for development.. just use this command:
+   ```bash
+   python main.py "C:/Users/<username>/Downloads" "C:/Users/<username>/Organized" --auto-yes
+   ```
+
+If you want to move the files (not copy) just add in --move
+   ```bash
+   python main.py "C:/Users/<username>/Downloads" "C:/Users/<username>/Organized" --move --auto-yes
    ```
