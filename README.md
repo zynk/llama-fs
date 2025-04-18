@@ -91,6 +91,18 @@ I already included other shit you will most likely need.
 
 ## Usage
 
+The below bash is for development.. if all you care about is using the tool then just use this command:
+   ```bash
+   python main.py "C:/Users/<username>/Downloads" "C:/Users/<username>/Organized" --auto-yes
+   ```
+
+If you want to move the files (not copy) just add in --move
+   ```bash
+   python main.py "C:/Users/<username>/Downloads" "C:/Users/<username>/Organized" --move --auto-yes
+   ```
+
+If you care about further development, use this stuff.
+
 To serve the application locally using FastAPI, run the following command
    ```bash
    fastapi dev server.py
@@ -101,14 +113,4 @@ This will run the server by default on port 8000. The API can be queried using a
    curl -X POST http://127.0.0.1:8000/batch \
     -H "Content-Type: application/json" \
     -d '{"path": "/Users/<username>/Downloads/", "instruction": "string", "incognito": false}'
-   ```
-
-The above bash is for development.. just use this command:
-   ```bash
-   python main.py "C:/Users/<username>/Downloads" "C:/Users/<username>/Organized" --auto-yes
-   ```
-
-If you want to move the files (not copy) just add in --move
-   ```bash
-   python main.py "C:/Users/<username>/Downloads" "C:/Users/<username>/Organized" --move --auto-yes
    ```
