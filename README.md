@@ -74,10 +74,10 @@ To install the project, follow these steps:
    ```
 I already included other shit you will most likely need.
 
-~~4. Update your `.env`
-Copy `.env.example` into a new file called `.env`. Then, provide the following API keys:
-* Groq: You can obtain one from [here](https://console.groq.com/keys).
-* AgentOps: You can obtain one from [here](https://app.agentops.ai/settings/projects).~~ (Ew.)
+~~4. Update your `.env`~~
+~~Copy `.env.example` into a new file called `.env`. Then, provide the following API keys:~~
+~~* Groq: You can obtain one from [here](https://console.groq.com/keys).~~
+~~* AgentOps: You can obtain one from [here](https://app.agentops.ai/settings/projects).~~ (Ew.)
 
 ~~Groq is used for fast cloud inference but can be replaced with Ollama in the code directly (TODO.~~ Not.)
 
