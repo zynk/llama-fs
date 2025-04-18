@@ -60,7 +60,7 @@ Before installing, ensure you have the following requirements:
 To install the project, follow these steps:
 1. Clone the repository:
    ```bash
-   git clone https://github.com/iyaja/llama-fs.git
+   git clone https://github.com/zynk/llama-fs.git
    ```
 
 2. Navigate to the project directory:
