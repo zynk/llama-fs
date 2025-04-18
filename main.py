@@ -2,10 +2,8 @@ import os
 import json
 import shutil
 import asyncio
-import pathlib
-import requests
-import colorama
 from pathlib import Path
+import colorama
 from termcolor import colored
 from asciitree import LeftAligned
 from asciitree.drawing import BoxStyle, BOX_LIGHT
@@ -29,13 +27,18 @@ def main(src_path, dst_path, auto_yes=False, move=False):
     dst_path = Path(dst_path)
     dst_path.mkdir(exist_ok=True)
 
-    # 1. Get summaries
+    print(colored("🔍 Step 1: Generating summaries...", "cyan"))
     summaries = asyncio.run(get_dir_summaries(str(src_path)))
 
-    # 2. Generate structured file tree
+    print(colored("🗂️ Step 2: Building file tree from summaries...", "cyan"))
     files = create_file_tree(summaries)
 
-    # 3. Build and preview ASCII folder tree
+    if not files:
+        print(colored("❌ No files were categorized. Exiting.", "red"))
+        return
+
+    print(colored("🌲 Step 3: Previewing directory structure...\n", "cyan"))
+
     tree = {}
     for file in files:
         parts = Path(file["dst_path"]).parts
@@ -46,18 +49,16 @@ def main(src_path, dst_path, auto_yes=False, move=False):
     tr = LeftAligned(draw=BoxStyle(gfx=BOX_LIGHT, horiz_len=1))
     print(tr(tree))
 
-    # 4. Normalize src and dst paths
+    print(colored("🛠️ Step 4: Preparing file transfers...", "cyan"))
     for file in files:
-        # Use model's relative dst_path to create full destination path
         file["dst_path"] = dst_path / Path(file["dst_path"])
-        file["src_path"] = src_path / Path(file["src_path"]).name
+        file["src_path"] = src_path / Path(file["src_path"])
 
-    # 5. Confirm with user
-    if not auto_yes and not click.confirm("Proceed with directory structure?", default=True):
-        click.echo("Operation cancelled.")
+    if not auto_yes and not click.confirm("🚦 Proceed with file operations?", default=True):
+        click.echo("❎ Operation cancelled by user.")
         return
 
-    # 6. Move or copy files
+    print(colored("🚚 Step 5: Transferring files...", "cyan"))
     for file in files:
         src_file = file["src_path"]
         dst_file = file["dst_path"]
@@ -67,12 +68,12 @@ def main(src_path, dst_path, auto_yes=False, move=False):
         try:
             if move:
                 shutil.move(str(src_file), str(dst_file))
-                print(f"🚚 Moved: {src_file} → {dst_file}")
+                print(f"✅ Moved: {src_file} → {dst_file}")
             else:
                 shutil.copy2(str(src_file), str(dst_file))
-                print(f"📁 Copied: {src_file} → {dst_file}")
+                print(f"✅ Copied: {src_file} → {dst_file}")
         except Exception as e:
-            print(f"❌ Failed to transfer {src_file}: {e}")
+            print(colored(f"❌ Failed to transfer {src_file}: {e}", "red"))
 
 
 if __name__ == "__main__":

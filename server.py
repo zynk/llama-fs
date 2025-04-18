@@ -63,10 +63,21 @@ async def batch(request: Request):
             status_code=400, detail="Path does not exist in filesystem"
         )
 
+    print(colored("🔍 Summarizing files...", "cyan"))
     summaries = await get_dir_summaries(path)
+
+    print(colored("🗂️ Categorizing files...", "cyan"))
     files = create_file_tree(summaries)
 
-    # Build directory tree (for preview/log)
+    if not files:
+        raise HTTPException(
+            status_code=500,
+            detail="No files were categorized. The model may have returned empty responses.",
+        )
+
+    print(colored("🌲 Building directory tree...\n", "cyan"))
+
+    # Directory tree preview
     tree = {}
     for file in files:
         parts = Path(file["dst_path"]).parts
@@ -77,9 +88,10 @@ async def batch(request: Request):
     tr = LeftAligned(draw=BoxStyle(gfx=BOX_LIGHT, horiz_len=1))
     print(tr(tree))
 
-    # Attach summaries to response
+    # 🔗 Match each summary by path (more robust than relying on index order)
+    summary_lookup = {item["file_path"]: item["summary"] for item in summaries}
     for file in files:
-        file["summary"] = summaries[files.index(file)]["summary"]
+        file["summary"] = summary_lookup.get(file["src_path"]) or summary_lookup.get(file["file_path"], "")
 
     return files
 

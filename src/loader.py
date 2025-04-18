@@ -2,6 +2,7 @@ import asyncio
 import json
 import os
 from collections import defaultdict
+import random
 
 import colorama
 import ollama
@@ -109,11 +110,17 @@ async def dispatch_summarize_document(doc, _client=None):
     else:
         raise ValueError("Document type not supported")
 
-
 async def get_summaries(documents):
-    summaries = await asyncio.gather(*[dispatch_summarize_document(doc) for doc in documents])
+    summaries = []
+    for i, doc in enumerate(documents):
+        try:
+            print(colored(f"[{i+1}/{len(documents)}] Summarizing...", "cyan"))
+            summary = await dispatch_summarize_document(doc)
+            summaries.append(summary)
+            await asyncio.sleep(random.uniform(0.1, 0.3)) # gentle delay to avoid overload
+        except Exception as e:
+            print(colored(f"Failed to summarize document: {e}", "red"))
     return summaries
-
 
 def merge_summary_documents(summaries, metadata_list):
     list_summaries = defaultdict(list)
@@ -155,14 +162,25 @@ def dispatch_summarize_document_sync(doc):
 
 def summarize_document_sync(doc):
     PROMPT = """
-You will be provided with the contents of a file along with its metadata. Provide a summary of the contents. The purpose of the summary is to organize files based on their content. To this end provide a concise but informative summary. Make the summary as specific to the file as possible.
+You will be provided with the contents of a file along with its metadata.
+
+Your job is to provide a detailed and content-specific summary. The purpose is to help organize and rename the file based on **its actual subject**, not just its format or type.
+
+Your summary should:
+- Identify the core subject of the file.
+- Include any relevant references to **famous brands, franchises, or people** (e.g., StarCraft, Blizzard, LEGO, Magic: The Gathering, Batman, Spider-Man, Cowboy Bebop, Evangelion, Minecraft, Nintendo, etc.)
+- Include recognizable topics or aesthetics (e.g., 80s anime, gothic horror, cyberpunk, pixel art, mecha, etc.)
+- Be concise, yet specific enough that another user could rename or classify the file intelligently.
+- Never summarize based solely on the file name.
 
 Respond in JSON format with this schema:
 
+```json
 {
     "file_path": "path to the file including name",
     "summary": "summary of the content"
 }
+```
 """.strip()
 
     client = ollama.Client()
