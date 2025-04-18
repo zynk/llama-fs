@@ -81,40 +81,16 @@ class Handler(FileSystemEventHandler):
 
 def create_file_tree(summaries, fs_events):
     FILE_PROMPT = """
-You will be provided with a single file and a summary of its contents.
+You will be provided with a single file name and a summary of its contents.
 
 Generate a new `dst_path` that includes:
-- A **relative folder path** that categorizes the file based on its content
-- A **new filename** based on the subject of the file (make it more specific and descriptive)
+- A folder name that categorizes the file based on its content that must be one of the following words: anime, games, comics, cyberpunk, humor, magic-the-gathering, landscape, workspace, memes, artwork, food, music, history, fashion, philosophy, science fiction, miscellaneous
+- A new filename based on the subject of the file (make it more specific)
 
-Only use one of the following folders to categorize the file, here is the Categories List:
-anime
-gaming
-comics
-cyberpunk
-funny
-infographics
-magic the gathering
-pixel
-landscape
-workspace
-movies
-memes
-art
-food
-music
-history
-fashion
-philosophy
-science fiction
-space
-uncategorized
-
-⚠️ Never create a dst_path using a folder name that is not on the Categories list!
-⚠️ Never return just a folder name as the dst_path.
-⚠️ Always include the full path + filename + extension in dst_path.
-⚠️ Do not repeat the original filename, make it more descriptive based on content.
-⚠️ If the content doesn't fit any category, use the "uncategorized" folder.
+⚠️ Only generate one value for folder_name.
+❌ Do not create subfolders or multiple folders.
+✔️ Output should contain a single folder name only, with no nested paths.
+⚠️ Always include the folder name + filename + extension in dst_path.
 
 Respond ONLY in the following JSON format:
 
@@ -143,7 +119,7 @@ Include the above items in your response exactly as is, along all other proposed
     client = ollama.Client()
     try:
         response = client.chat(
-            model="codellama:instruct",
+            model="mistral:instruct",
             messages=[
                 {"role": "system", "content": FILE_PROMPT},
                 {"role": "user", "content": json.dumps(summaries)},

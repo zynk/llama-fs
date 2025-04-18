@@ -50,19 +50,29 @@ def load_documents(path: str):
 
 async def summarize_document(doc):
     PROMPT = """
-You will be provided with the contents of a file along with its metadata. Provide a summary of the contents. The purpose of the summary is to organize files based on their content. To this end provide a concise but informative summary. Make the summary as specific to the file as possible.
+You will be provided with the contents of a file along with its metadata.
+
+Your job is to provide a detailed and content-specific summary. The purpose is to help organize and rename the file based on **its actual subject**, not just its format or type.
+
+Your summary should:
+- Identify the core subject of the file.
+- Include any relevant references to **famous brands, franchises, or people** (e.g., StarCraft, Blizzard, LEGO, Magic: The Gathering, Batman, Spider-Man, Cowboy Bebop, Evangelion, Minecraft, Nintendo, etc.)
+- Include recognizable topics or aesthetics (e.g., 80s anime, gothic horror, cyberpunk, pixel art, mecha, etc.)
+- Include a category at the end of every summary that must be one of the following words: anime, games, comics, cyberpunk, humor, magic-the-gathering, landscape, workspace, memes, artwork, food, music, history, fashion, philosophy, science fiction, miscellaneous
 
 Respond in JSON format with this schema:
 
+```json
 {
     "file_path": "path to the file including name",
     "summary": "summary of the content"
 }
+```
 """.strip()
 
     client = ollama.AsyncClient()
     response = await client.chat(
-        model="codellama:instruct",
+        model="mistral:instruct",
         messages=[
             {"role": "system", "content": PROMPT},
             {"role": "user", "content": json.dumps(doc)},
@@ -170,8 +180,7 @@ Your summary should:
 - Identify the core subject of the file.
 - Include any relevant references to **famous brands, franchises, or people** (e.g., StarCraft, Blizzard, LEGO, Magic: The Gathering, Batman, Spider-Man, Cowboy Bebop, Evangelion, Minecraft, Nintendo, etc.)
 - Include recognizable topics or aesthetics (e.g., 80s anime, gothic horror, cyberpunk, pixel art, mecha, etc.)
-- Be concise, yet specific enough that another user could rename or classify the file intelligently.
-- Never summarize based solely on the file name.
+- Include a category at the end of every summary that must be one of the following words: anime, games, comics, cyberpunk, humor, magic-the-gathering, landscape, workspace, memes, artwork, food, music, history, fashion, philosophy, science fiction, miscellaneous
 
 Respond in JSON format with this schema:
 
@@ -185,7 +194,7 @@ Respond in JSON format with this schema:
 
     client = ollama.Client()
     response = client.chat(
-        model="codellama:instruct",
+        model="mistral:instruct",
         messages=[
             {"role": "system", "content": PROMPT},
             {"role": "user", "content": json.dumps(doc)},

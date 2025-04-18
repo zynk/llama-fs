@@ -4,42 +4,19 @@ import ollama
 from termcolor import colored
 import time
 import random
+import os
 
 FILE_PROMPT = """
-You will be provided with a single file and a summary of its contents.
+You will be provided with a single file name and a summary of its contents.
 
 Generate a new `dst_path` that includes:
-- A **relative folder path** that categorizes the file based on its content
-- A **new filename** based on the subject of the file (make it more specific and descriptive)
+- A folder name that categorizes the file based on its content that must be one of the following words: anime, games, comics, cyberpunk, humor, magic-the-gathering, landscape, workspace, memes, artwork, food, music, history, fashion, philosophy, science fiction, miscellaneous
+- A new filename based on the subject of the file (make it more specific)
 
-Only use one of the following folders to categorize the file, here is the Categories List:
-anime
-gaming
-comics
-cyberpunk
-funny
-infographics
-magic the gathering
-pixel
-landscape
-workspace
-movies
-memes
-art
-food
-music
-history
-fashion
-philosophy
-science fiction
-space
-uncategorized
-
-⚠️ Never create a dst_path using a folder name that is not on the Categories list!
-⚠️ Never return just a folder name as the dst_path.
-⚠️ Always include the full path + filename + extension in dst_path.
-⚠️ Do not repeat the original filename, make it more descriptive based on content.
-⚠️ If the content doesn't fit any category, use the "uncategorized" folder.
+⚠️ Only generate one value for folder_name.
+❌ Do not create subfolders or multiple folders.
+✔️ Output should contain a single folder name only, with no nested paths.
+⚠️ Always include the folder name + filename + extension in dst_path.
 
 Respond ONLY in the following JSON format:
 
@@ -52,12 +29,30 @@ Respond ONLY in the following JSON format:
     }
   ]
 }
-```
 """.strip()
+
+# Approved folder list
+VALID_FOLDERS = {
+    "anime", "games", "comics", "cyberpunk", "humor", "magic-the-gathering",
+    "landscape", "workspace", "memes", "artwork", "food", "music",
+    "history", "fashion", "philosophy", "science fiction", "miscellaneous"
+}
 
 def extract_json(text):
     match = re.search(r'```json\s*(.*?)\s*```', text, re.DOTALL)
     return match.group(1) if match else text.strip()
+
+def validate_dst_path(dst_path):
+    try:
+        folder_name = dst_path.split("/")[0].strip().lower()
+        if folder_name not in VALID_FOLDERS:
+            print(colored(f"⚠️ Invalid folder '{folder_name}' — re-routing to 'uncategorized'", "yellow"))
+            rest = "/".join(dst_path.split("/")[1:])
+            return os.path.join("uncategorized", rest)
+        return dst_path
+    except Exception as e:
+        print(colored(f"❌ Error validating dst_path: {e}", "red"))
+        return os.path.join("uncategorized", os.path.basename(dst_path))
 
 def create_file_tree(summaries: list, session=None):
     if not summaries:
@@ -82,7 +77,7 @@ def create_file_tree(summaries: list, session=None):
                 {"role": "user", "content": "Respond ONLY with the JSON as described. No comments. Pure JSON."}
             ]
 
-            response = client.chat(model="codellama:instruct", messages=messages)
+            response = client.chat(model="mistral:instruct", messages=messages)
             content = response["message"]["content"]
             print(colored(content, "yellow"))
 
@@ -90,11 +85,13 @@ def create_file_tree(summaries: list, session=None):
             data = json.loads(clean_json)
 
             if "files" in data:
-                categorized_files.extend(data["files"])
+                for file in data["files"]:
+                    file["dst_path"] = validate_dst_path(file["dst_path"])
+                    categorized_files.append(file)
             else:
                 raise ValueError("Missing 'files' key")
 
-            time.sleep(random.uniform(0.4, 0.9))  # throttle gently
+            time.sleep(random.uniform(0.3, 0.8))  # throttle gently
 
         except Exception as e:
             print(colored(f"❌ Error categorizing file {file_path}: {e}", "red"))

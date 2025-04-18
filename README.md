@@ -8,7 +8,9 @@ Okay, so I really bastardized this project to use Ollama instead of Groq, delete
 
 Feel free to mess with the actual prompt located in src\tree_generator.py and watch_utils, snippet is called "File_Prompt", it's highly effective to just change what you're asking it rather than the code itself.
 
-Utilizes Ollama, completely local, codellama:instruct is the model, mainly because it has no ethical dilemmas with images you feed it. No need for icognito toggle, overkill.
+There is a folder list within the prompts, as well as a validator within the tree_generator.py file (I'll update the watch function later), if mistral:instruct creates a folder that does not exist on this list, it will dump them to "uncategorized" folder instead, this allows you to rerun on this folder.
+
+Utilizes Ollama, completely local, mistral:instruct is the model, mainly because it has no ethical dilemmas with images you feed it. No need for icognito toggle, overkill.
 
 You will need to install the ollama dependencies below. The requirements has been updated per my changes.
 
@@ -86,7 +88,7 @@ I already included other shit you will most likely need.
 5. (Not Optional) Install moondream if you want to use the incognito mode
     ```bash
     ollama pull moondream
-    ollama pull codellama:instruct
+    ollama pull mistral:instruct
     ```
 
 ## Usage
