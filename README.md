@@ -83,7 +83,7 @@ I already included other shit you will most likely need.
 
 ~~AgentOps is used for logging and monitoring and will report the latency, cost per session, and give you a full session replay of each LlamaFS call.~~ (Hell no.)
 
-5. (Optional) Install moondream if you want to use the incognito mode
+5. (Not Optional) Install moondream if you want to use the incognito mode
     ```bash
     ollama pull moondream
     ollama pull codellama:instruct
