@@ -7,17 +7,19 @@ import random
 import os
 
 FILE_PROMPT = """
-You will be provided with a single file name and a summary of its contents.
+You will be provided with a file name and a short summary describing its contents.
 
-Generate a new `dst_path` that includes:
-- A folder name that categorizes the file based on its content that must be one of the following words: anime, games, comics, cyberpunk, humor, magic-the-gathering, movies, fantasy, landscape, workspace, memes, food, music, history, fashion, philosophy, science-fiction, marvel, dc, lego
-- A new filename based on the subject of the file (make it more specific)
+Your task is to generate a new dst_path with the following rules:
 
-⚠️ Only generate one value for folder_name.
-❌ Do not create subfolders or multiple folders.
-❌ Do not reuse the same filename.
-✔️ Output should contain a single folder name only, with no nested paths.
-⚠️ Always include the folder name + filename + extension in dst_path.
+Assign the file to one appropriate folder based on its content. The folder name must be one of the following categories: anime, games, comics, cyberpunk, humor, magic-the-gathering, movies, fantasy, landscape, workspace, memes, food, music, history, fashion, philosophy, science-fiction, marvel, dc, lego, astronomy, horror, holidays, interior
+
+Create a new, more specific filename based on the content.
+
+Requirements:
+⚠️ Only use one folder name from the allowed category list.
+❌ Do not create subfolders or nested paths.
+❌ Do NOT rely on the original file name. Use only the summary to determine category and generate the new file name.
+✔️ Always include the folder name, new filename, and extension in dst_path.
 
 Respond ONLY in the following JSON format:
 
@@ -30,13 +32,14 @@ Respond ONLY in the following JSON format:
     }
   ]
 }
+```
 """.strip()
 
 # Approved folder list
 VALID_FOLDERS = {
-    "anime", "games", "comics", "cyberpunk", "humor", "fantasy", "magic-the-gathering",
-    "landscape", "workspace", "memes", "food", "music", "lego", "marvel", "dc",
-    "history", "fashion", "philosophy", "science-fiction", "movies"
+    "anime", "games", "comics", "cyberpunk", "humor", "fantasy", "magic-the-gathering", "interior",
+    "landscape", "workspace", "memes", "food", "music", "lego", "marvel", "dc", "holidays",
+    "history", "fashion", "philosophy", "science-fiction", "movies", "astronomy", "horror"
 }
 
 def extract_json(text):

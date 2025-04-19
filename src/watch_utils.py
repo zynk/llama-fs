@@ -84,7 +84,7 @@ def create_file_tree(summaries, fs_events):
 You will be provided with a single file name and a summary of its contents.
 
 Generate a new `dst_path` that includes:
-- A folder name that categorizes the file based on its content that must be one of the following words: anime, games, comics, cyberpunk, humor, magic-the-gathering, movies, fantasy, landscape, workspace, memes, food, music, history, fashion, philosophy, science-fiction, marvel, dc, lego
+- A folder name that categorizes the file based on its content that must be one of the following words: anime, games, comics, cyberpunk, humor, magic-the-gathering, movies, fantasy, landscape, workspace, memes, food, music, history, fashion, philosophy, science-fiction, marvel, dc, lego, astronomy, horror, holidays, interior
 - A new filename based on the subject of the file (make it more specific)
 
 ⚠️ Only generate one value for folder_name.

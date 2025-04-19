@@ -56,8 +56,6 @@ Your job is to provide a detailed and content-specific summary. The purpose is t
 
 Your summary should:
 - Identify the core subject of the file.
-- Include any relevant references to **famous brands, franchises, or people** (e.g., StarCraft, Blizzard, LEGO, Magic: The Gathering, Batman, Spider-Man, Cowboy Bebop, Evangelion, Minecraft, Nintendo, etc.)
-- Include recognizable topics or aesthetics (e.g., 80s anime, gothic horror, cyberpunk, pixel art, mecha, etc.)
 
 Respond in JSON format with this schema:
 
@@ -92,7 +90,7 @@ Respond in JSON format with this schema:
 
 async def summarize_image_document(doc: ImageDocument):
     PROMPT = """
-Summarize the visual contents of this image. Keep it brief, no more than 2-3 sentences.
+What is this a picture of?
 """.strip()
 
     client = ollama.AsyncClient()
@@ -132,7 +130,7 @@ async def get_summaries(documents):
             print(colored(f"[{i+1}/{len(documents)}] Summarizing...", "cyan"))
             summary = await dispatch_summarize_document(doc)
             summaries.append(summary)
-            # await asyncio.sleep(random.uniform(0.1, 0.1)) # gentle delay to avoid overload
+            await asyncio.sleep(random.uniform(0.1, 0.1)) # gentle delay to avoid overload
         except Exception as e:
             print(colored(f"Failed to summarize document: {e}", "red"))
     return summaries
@@ -183,9 +181,6 @@ Your job is to provide a detailed and content-specific summary. The purpose is t
 
 Your summary should:
 - Identify the core subject of the file.
-- If the image is artwork, what type of artwork is it? Anime? Illustration? Painting? Digital? Attempt to describe the style or medium of the artwork.
-- Include any relevant references to **famous brands, franchises, or people** (e.g., StarCraft, Blizzard, LEGO, Magic: The Gathering, Batman, Spider-Man, Cowboy Bebop, Evangelion, Minecraft, Nintendo, etc.)
-- Include recognizable topics or aesthetics (e.g., 80s anime, gothic horror, cyberpunk, pixel art, mecha, etc.)
 
 Respond in JSON format with this schema:
 
