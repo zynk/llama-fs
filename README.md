@@ -8,13 +8,13 @@ Okay, so I really bastardized this project to use Ollama instead of Groq, delete
 
 Feel free to mess with the actual prompt located in src\tree_generator.py and watch_utils, snippet is called "File_Prompt", it's highly effective to just change what you're asking it rather than the code itself.
 
-There is a folder list within the prompts, as well as a validator within the tree_generator.py file (I'll update the watch function later), if mistral:instruct creates a folder that does not exist on this list, it will dump them to "uncategorized" folder instead, this allows you to rerun on this folder.
+There is a folder list within the prompts, as well as a validator within the tree_generator.py file (I'll update the watch function later), if mistral:instruct creates a folder that does not exist on this list, it will dump them to "uncategorized" folder instead, this allows you to rerun on this folder. This keeps it from creating too many different category folders. So yes, you will have to specify your own custom list of folders in the prompts and in VALID_FOLDERS located in tree_generator.py.
 
-Utilizes Ollama, completely local, mistral:instruct is the model, mainly because it has no ethical dilemmas with images you feed it. No need for icognito toggle, overkill.
+Utilizes Ollama, completely local, mistral:instruct is the model for folders/files and llava:13b is the image reader. No need for icognito toggle, overkill. Ilava:13b is big brain but probably half the speed of moondream, the draw back is worth the result, accurate summaries which aids accurate sorting. If you prefer speed, switch it to moondream and ollama pull moondream instead, it's a single word change in the loader.py.
 
 You will need to install the ollama dependencies below. The requirements has been updated per my changes.
 
-I got rid of AgentOps, it's fast enough, we get it. I trashed all the other bs, just install requirements, install ollama dependencies, and run it with the command at the end. Done.
+I got rid of AgentOps, since this model is slow as hell. I trashed all the other bs, just install requirements, install ollama dependencies, and run it with the command at the end. Done.
 
 ## Inspiration
 
@@ -38,11 +38,11 @@ Uh... Sending all my personal files to an API provider?! No thank you!
 
 ## How we built it
 
-We built LlamaFS on a Python backend, leveraging the Llama3 model through Groq for file content summarization and tree structuring. For local processing, we integrated Ollama running the same model to ensure privacy in incognito mode. The frontend is crafted with Electron, providing a sleek, user-friendly interface that allows users to interact with the suggested file structures before finalizing changes.
+We built LlamaFS on a Python backend, leveraging the Llama3 model through Groq for file content summarization and tree structuring. For local processing, we integrated Ollama running the same model to ensure privacy in incognito mode. ~~The frontend is crafted with Electron, providing a sleek, user-friendly interface that allows users to interact with the suggested file structures before finalizing changes.~~
 
-- **It's extremely fast!** (by LLM standards)! Most file operations are processed in <500ms in watch mode ~~(benchmarked by [AgentOps](https://agentops.ai/?utm_source=llama-fs))~~. This is because of our smart caching that selectively rewrites sections of the index based on the minimum necessary filesystem diff. ~~And of course, Groq's super fast inference API. 😉~~ (This was written by AI, can you tell?)
+- **It's ~~extremely~~ slow but accurate!** (by LLM standards)! Most file operations are processed ~~in <500ms in watch mode (benchmarked by [AgentOps](https://agentops.ai/?utm_source=llama-fs))~~. This is because of our smart caching that selectively rewrites sections of the index based on the minimum necessary filesystem diff. ~~And of course, Groq's super fast inference API. 😉~~ (This was written by AI, can you tell?)
 
-- **It's immediately useful** - It's very low friction to use and addresses a problem almost everyone has. We started using it ourselves on this project (very Meta).
+- **It's ~~immediately~~ useful** - It's very low friction to use and addresses a problem almost everyone has. We started using it ourselves on this project (very Meta).
 
 ## What's next for LlamaFS
 
@@ -89,6 +89,7 @@ I already included other shit you will most likely need.
     ```bash
     ollama pull moondream
     ollama pull mistral:instruct
+    ollama pull llava:13b
     ```
 
 ## Usage

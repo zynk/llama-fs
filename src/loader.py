@@ -32,7 +32,7 @@ def load_documents(path: str):
             ".pdf", ".txt", ".doc", ".docx", ".rtf", ".md",
 
             # Images
-            ".png", ".jpg", ".jpeg", ".webp", ".bmp", ".tiff", ".tif"
+            ".png", ".jpg", ".jpeg", ".bmp", ".tiff", ".tif"
         ]
     )
     splitter = TokenTextSplitter(chunk_size=6144)
@@ -58,7 +58,6 @@ Your summary should:
 - Identify the core subject of the file.
 - Include any relevant references to **famous brands, franchises, or people** (e.g., StarCraft, Blizzard, LEGO, Magic: The Gathering, Batman, Spider-Man, Cowboy Bebop, Evangelion, Minecraft, Nintendo, etc.)
 - Include recognizable topics or aesthetics (e.g., 80s anime, gothic horror, cyberpunk, pixel art, mecha, etc.)
-- Include a category at the end of every summary that must be one of the following words: anime, games, comics, cyberpunk, humor, magic-the-gathering, landscape, workspace, memes, artwork, food, music, history, fashion, philosophy, science fiction, miscellaneous
 
 Respond in JSON format with this schema:
 
@@ -91,16 +90,20 @@ Respond in JSON format with this schema:
     print("-" * 80 + "\n")
     return summary
 
-
 async def summarize_image_document(doc: ImageDocument):
+    PROMPT = """
+Summarize the visual contents of this image. Keep it brief, no more than 2-3 sentences.
+""".strip()
+
     client = ollama.AsyncClient()
     response = await client.chat(
-        model="moondream",
+        model="llava:13b",
         messages=[
-            {"role": "user", "content": "Summarize the contents of this image.", "images": [doc.image_path]}
+            {"role": "user", "content": PROMPT, "images": [doc.image_path]}
         ],
         options={"num_predict": 128}
     )
+
     summary = {
         "file_path": doc.image_path,
         "summary": response["message"]["content"],
@@ -110,6 +113,8 @@ async def summarize_image_document(doc: ImageDocument):
     print(summary["summary"])
     print("-" * 80 + "\n")
     return summary
+
+
 
 
 async def dispatch_summarize_document(doc, _client=None):
@@ -127,7 +132,7 @@ async def get_summaries(documents):
             print(colored(f"[{i+1}/{len(documents)}] Summarizing...", "cyan"))
             summary = await dispatch_summarize_document(doc)
             summaries.append(summary)
-            await asyncio.sleep(random.uniform(0.1, 0.3)) # gentle delay to avoid overload
+            # await asyncio.sleep(random.uniform(0.1, 0.1)) # gentle delay to avoid overload
         except Exception as e:
             print(colored(f"Failed to summarize document: {e}", "red"))
     return summaries
@@ -178,9 +183,9 @@ Your job is to provide a detailed and content-specific summary. The purpose is t
 
 Your summary should:
 - Identify the core subject of the file.
+- If the image is artwork, what type of artwork is it? Anime? Illustration? Painting? Digital? Attempt to describe the style or medium of the artwork.
 - Include any relevant references to **famous brands, franchises, or people** (e.g., StarCraft, Blizzard, LEGO, Magic: The Gathering, Batman, Spider-Man, Cowboy Bebop, Evangelion, Minecraft, Nintendo, etc.)
 - Include recognizable topics or aesthetics (e.g., 80s anime, gothic horror, cyberpunk, pixel art, mecha, etc.)
-- Include a category at the end of every summary that must be one of the following words: anime, games, comics, cyberpunk, humor, magic-the-gathering, landscape, workspace, memes, artwork, food, music, history, fashion, philosophy, science fiction, miscellaneous
 
 Respond in JSON format with this schema:
 

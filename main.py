@@ -33,6 +33,19 @@ def main(src_path, dst_path, auto_yes=False, move=False):
     print(colored("🗂️ Step 2: Building file tree from summaries...", "cyan"))
     files = create_file_tree(summaries)
 
+    # 🔎 Detect files that were skipped during summarization
+    all_files = {str(p.relative_to(src_path)) for p in src_path.rglob("*") if p.is_file()}
+    summarized_files = {f["file_path"] for f in summaries}
+    unsummarized_files = all_files - summarized_files
+
+    if unsummarized_files:
+        print(colored(f"⚠️ {len(unsummarized_files)} files failed to summarize. Routing to 'uncategorized'.", "yellow"))
+        for path in unsummarized_files:
+            files.append({
+                "src_path": src_path / path,
+                "dst_path": dst_path / "uncategorized" / Path(path).name
+            })
+
     if not files:
         print(colored("❌ No files were categorized. Exiting.", "red"))
         return
