@@ -37,12 +37,23 @@ def load_documents(path: str):
     )
     splitter = TokenTextSplitter(chunk_size=6144)
     documents = []
+    seen_files = set()
+    
     for docs in reader.iter_data():
+        # Get the file path from metadata
+        file_path = docs[0].metadata.get('file_path', '')
+        
+        # Skip if we've already processed this file
+        if file_path in seen_files:
+            continue
+        seen_files.add(file_path)
+        
         if len(docs) > 1:
-            for d in docs:
-                contents = splitter.split_text("\n".join(d.text))
-                text = contents[0] if contents else ""
-                documents.append(Document(text=text, metadata=docs[0].metadata))
+            # Merge all text from multiple pages/sections into one document
+            all_text = "\n".join([d.text for d in docs])
+            contents = splitter.split_text(all_text)
+            text = contents[0] if contents else all_text[:6144]  # Limit to chunk_size
+            documents.append(Document(text=text, metadata=docs[0].metadata))
         else:
             documents.append(docs[0])
     return documents
@@ -69,7 +80,7 @@ Respond in JSON format with this schema:
 
     client = ollama.AsyncClient()
     response = await client.chat(
-        model="mistral:instruct",
+        model="gpt-oss:20b",
         messages=[
             {"role": "system", "content": PROMPT},
             {"role": "user", "content": json.dumps(doc)},
@@ -95,7 +106,7 @@ What is this a picture of?
 
     client = ollama.AsyncClient()
     response = await client.chat(
-        model="llava:13b",
+        model="llava-llama3:latest",
         messages=[
             {"role": "user", "content": PROMPT, "images": [doc.image_path]}
         ],
@@ -194,7 +205,7 @@ Respond in JSON format with this schema:
 
     client = ollama.Client()
     response = client.chat(
-        model="mistral:instruct",
+        model="gpt-oss:20b",
         messages=[
             {"role": "system", "content": PROMPT},
             {"role": "user", "content": json.dumps(doc)},
