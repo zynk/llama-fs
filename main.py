@@ -32,7 +32,16 @@ def main(src_path, dst_path, auto_yes=False, move=False):
 
     print(colored("🗂️ Step 2: Building file tree from summaries...", "cyan"))
     files = create_file_tree(summaries)
+    
+    # Comment this out if you want to keep custom filenames
+    print(colored("🧹 Normalizing destination filenames...", "cyan"))
 
+    for file in files:
+        src_name = Path(file["src_path"]).name
+        dst_folder = Path(file["dst_path"]).parent
+        file["dst_path"] = dst_folder / src_name
+    # End Comment
+    
     # 🔎 Detect files that were skipped during summarization
     all_files = {str(p.relative_to(src_path)) for p in src_path.rglob("*") if p.is_file()}
     summarized_files = {f["file_path"] for f in summaries}
