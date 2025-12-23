@@ -16,6 +16,8 @@ You will need to install the ollama dependencies below. The requirements has bee
 
 I got rid of AgentOps, since this model is slow as hell. I trashed all the other bs, just install requirements, install ollama dependencies, and run it with the command at the end. Done.
 
+In Main.py there is a snippet of code you can comment out if you want custom filenames.
+
 ## Inspiration
 
 Open your `~/Downloads` directory. Or your Desktop. It's probably a mess...
